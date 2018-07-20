@@ -1,12 +1,13 @@
 import React from 'react';
 import Summary from './Summary';
 import Chart from './Chart';
+import { Divider } from 'semantic-ui-react';
 
 const Quote = (props) => {
   return (
     <div>
-      <h2>Quote Component</h2>
       <Summary symbol={props.match.params.symbol} />
+      <Divider />
       <Chart symbol={props.match.params.symbol} />
     </div>
   );

@@ -3,7 +3,7 @@ import React from 'react';
 const NewsArticle = (props) => {
   return (
     <div>
-      <p>{props.article.title}</p>
+      <p><strong>{props.article.title}</strong></p>
       <p>{props.article.description}</p>
     </div>
   );

@@ -4,10 +4,9 @@ import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
 
 class Chart extends Component {
-
+  
   componentDidMount = async () => {
     const chartDataResponse = await axios.get(`https://api.iextrading.com/1.0/stock/${this.props.symbol}/chart/5y`);
-
 
     const stockData = [];
     chartDataResponse.data.forEach((stock) => {

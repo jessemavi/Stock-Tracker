@@ -22,7 +22,12 @@ class Chart extends Component {
       }],
       rangeSelector: {
             allButtonsEnabled: true,
+            selected: 5,
             buttons: [{
+              type: 'day',
+              count: 5,
+              text: '5d'
+            }, {
               type: 'month',
               count: 1,
               text: '1m'

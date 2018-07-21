@@ -1,17 +1,18 @@
 import React, { Component } from 'react';
+import { Search } from 'semantic-ui-react'
 
 class Header extends Component {
   constructor() {
     super();
     this.state = {
-      
+
     };
   }
 
   render() {
     return (
       <div>
-        <h2>Header Component</h2>
+        <Search />
       </div>
     );
   }

@@ -28,7 +28,6 @@ class Messages extends Component {
   render() {
     return (
       <div>
-        <h3>Messages</h3>
         {this.state.messages.map((message, index) => {
           return (
             <Message

@@ -90,6 +90,7 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    w.WriteHeader(http.StatusOK)
     w.Header().Set("Content-Type", "application/json")
     w.Write(output)
 
@@ -121,6 +122,8 @@ func addStock(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
         return
     }
+
+    w.WriteHeader(http.StatusCreated)
 }
 
 // delete request to remove a stock
@@ -148,4 +151,6 @@ func removeStock(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
         return
     }
+
+    w.WriteHeader(http.StatusNoContent)
 }

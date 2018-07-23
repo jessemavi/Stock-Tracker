@@ -34,6 +34,7 @@ func init() {
 func main() {
     http.HandleFunc("/", index)
     http.HandleFunc("/stocks", getStocks)
+    http.HandleFunc("/stocks/add", addStock)
     http.ListenAndServe(":8080", nil)
 }
 
@@ -92,5 +93,32 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
     w.Write(output)
 
     fmt.Println(string(output))
+}
+
+
+// post request to add a stock
+func addStock(w http.ResponseWriter, r *http.Request) {
+    // take stock object from json request body and parse it with decoder into a stock struct
+    // extract data from stock struct to insert
+    // insert stock data into db
+
+    if r.Method != "POST" {
+        http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+        return
+    }
+
+    stock := Stock{}
+
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&stock)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    _, err = db.Exec("insert into stocks (symbol, user_id) values ($1, $2)", stock.Symbol, stock.User)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
 }
 

@@ -35,6 +35,7 @@ func main() {
     http.HandleFunc("/", index)
     http.HandleFunc("/stocks", getStocks)
     http.HandleFunc("/stocks/add", addStock)
+    http.HandleFunc("/stocks/remove", removeStock)
     http.ListenAndServe(":8080", nil)
 }
 
@@ -122,3 +123,29 @@ func addStock(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+// delete request to remove a stock
+func removeStock(w http.ResponseWriter, r *http.Request) {
+    // take stock object from json request body and parse it with decoder into a stock struct
+    // extract data from stock struct to delete
+    // delete from db with symbol and user id
+
+    if r.Method != "DELETE" {
+        http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+        return
+    }
+
+    stock := Stock{}
+
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&stock)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    _, err = db.Exec("delete from stocks where symbol = $1 and user_id = $2", stock.Symbol, stock.User)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+}

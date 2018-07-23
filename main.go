@@ -2,7 +2,7 @@ package main
 
 import (
     "database/sql"
-    // "encoding/json"
+    "encoding/json"
     "fmt"
     "net/http"
     _ "github.com/lib/pq"
@@ -33,9 +33,64 @@ func init() {
 
 func main() {
     http.HandleFunc("/", index)
+    http.HandleFunc("/stocks", getStocks)
     http.ListenAndServe(":8080", nil)
 }
 
 func index(w http.ResponseWriter, r * http.Request) {
     fmt.Fprintf(w, "Stock Tracker")
 }
+
+// post request to get all stocks for a user
+func getStocks(w http.ResponseWriter, r *http.Request) {
+    // get user id from post request body by decoding
+    // go through stocks and get stocks with user id
+        // create structs with stock info from db
+    // marshal stock structs into json
+    // write json as response
+
+    if(r.Method != "POST") {
+        http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+        return
+    }
+
+    user := User{}
+
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&user)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    stocks := []Stock{}
+
+    rows, err := db.Query("select * from stocks where user_id = $1", user.ID)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    defer rows.Close()
+
+    for rows.Next() {
+        stock := Stock{}
+        err = rows.Scan(&stock.ID, &stock.Symbol, &stock.User)
+        if err != nil {
+            fmt.Println(err)
+            return
+        }
+        stocks = append(stocks, stock)
+    }
+
+    output, err := json.Marshal(stocks)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(output)
+
+    fmt.Println(string(output))
+}
+

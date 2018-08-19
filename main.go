@@ -24,7 +24,7 @@ func init() {
     }
 
     _, err = db.Query(`
-        create table if not exists stocks (
+        create table if not exists bookmarked_stocks (
             id serial primary key,
             symbol varchar unique not null
         );
@@ -58,7 +58,7 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
 
     stocks := []Stock{}
 
-    rows, err := db.Query("select * from stocks")
+    rows, err := db.Query("select * from bookmarked_stocks")
     if err != nil {
         fmt.Println(err)
         return
@@ -108,7 +108,7 @@ func addStock(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
         return
     }
-    _, err = db.Exec("insert into stocks (symbol) values ($1)", stock.Symbol)
+    _, err = db.Exec("insert into bookmarked_stocks (symbol) values ($1)", stock.Symbol)
     if err != nil {
         fmt.Println(err)
         return
@@ -119,8 +119,7 @@ func addStock(w http.ResponseWriter, r *http.Request) {
 
 // delete request to remove a stock
 func removeStock(w http.ResponseWriter, r *http.Request) {
-    // take stock object from json request body and parse it with decoder into a stock struct
-    // extract data from stock struct to delete
+    // take stock symbol from request query params
     // delete from db with symbol
 
     if r.Method != "DELETE" {
@@ -128,16 +127,9 @@ func removeStock(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    stock := Stock{}
+    symbol := r.URL.Query().Get("symbol")
 
-    decoder := json.NewDecoder(r.Body)
-    err := decoder.Decode(&stock)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-
-    _, err = db.Exec("delete from stocks where symbol = $1", stock.Symbol)
+    _, err := db.Exec("delete from bookmarked_stocks where symbol = $1", symbol)
     if err != nil {
         fmt.Println(err)
         return

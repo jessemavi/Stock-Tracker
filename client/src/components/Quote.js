@@ -12,12 +12,24 @@ class Quote extends Component {
     this.state = {
       iexQuoteData: {},
       robinhoodQuoteData: {},
+      followingStock: false,
       activeItem: 'summary'
     };
   }
 
   componentDidMount = async () => {
     try {
+      const followedStocks = await axios.post('/stocks');
+      console.log('followedStocks', followedStocks.data);
+
+      followedStocks.data.forEach((stock) => {
+        if(stock.symbol === this.props.match.params.symbol) {
+          this.setState({
+            followingStock: true
+          });
+        }
+      });
+
       const iexDataResponse = await axios.get(`https://api.iextrading.com/1.0/stock/${this.props.match.params.symbol}/quote`);
       const robinhoodDataResponse = await axios.get(`https://api.robinhood.com/quotes/${this.props.match.params.symbol}/`);
 
@@ -26,7 +38,7 @@ class Quote extends Component {
         robinhoodQuoteData: robinhoodDataResponse.data
       });
 
-      console.log(this.state);
+      console.log('state in Quote component', this.state);
     } catch(err) {
       console.log(err);
       return;
@@ -35,13 +47,46 @@ class Quote extends Component {
 
   handleItemClick = (e, { name }) => this.setState({ activeItem: name })
 
+  followStock = async () => {
+    try {
+      const followedStock = await axios.post('/stocks/add', {"symbol": this.props.match.params.symbol});
+      console.log('followedStock', followedStock);
+      if(followedStock.status === 201) {
+        this.setState({
+          followingStock: true
+        });
+      }
+    } catch(err) {
+      console.log(err);
+      return;
+    }
+  }
+
+  unfollowStock = async () => {
+    try {
+      const deletedStock = await axios.delete('/stocks/remove', {params: {symbol: this.props.match.params.symbol}});
+      console.log('deletedStock', deletedStock);
+      if(deletedStock.status === 204) {
+        this.setState({
+          followingStock: false
+        });
+      }
+    } catch(err) {
+      console.log(err);
+      return;
+    }
+  }
+
   render() {
     return (
       <div>
         <Price 
-          symbol={this.props.match.params.symbol} 
+          symbol={this.props.match.params.symbol}
+          followingStock={this.state.followingStock}
           iexQuoteData={this.state.iexQuoteData}
           robinhoodQuoteData={this.state.robinhoodQuoteData}
+          followStock={this.followStock}
+          unfollowStock={this.unfollowStock}
         />
 
         <Menu secondary color={'blue'}>

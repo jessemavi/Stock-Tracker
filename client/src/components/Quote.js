@@ -19,7 +19,7 @@ class Quote extends Component {
 
   componentDidMount = async () => {
     try {
-      const followedStocks = await axios.post('/stocks');
+      const followedStocks = await axios.post('/bookmarkedStocks');
       console.log('followedStocks', followedStocks.data);
 
       followedStocks.data.forEach((stock) => {
@@ -49,7 +49,7 @@ class Quote extends Component {
 
   followStock = async () => {
     try {
-      const followedStock = await axios.post('/stocks/add', {"symbol": this.props.match.params.symbol});
+      const followedStock = await axios.post('/bookmarkedStocks/add', {"symbol": this.props.match.params.symbol});
       console.log('followedStock', followedStock);
       if(followedStock.status === 201) {
         this.setState({
@@ -64,7 +64,7 @@ class Quote extends Component {
 
   unfollowStock = async () => {
     try {
-      const deletedStock = await axios.delete('/stocks/remove', {params: {symbol: this.props.match.params.symbol}});
+      const deletedStock = await axios.delete('/bookmarkedStocks/remove', {params: {symbol: this.props.match.params.symbol}});
       console.log('deletedStock', deletedStock);
       if(deletedStock.status === 204) {
         this.setState({

@@ -4,13 +4,22 @@ import (
     "database/sql"
     "encoding/json"
     "fmt"
+    "io/ioutil"
+    "log"
     "net/http"
     _ "github.com/lib/pq"
 )
 
 var db *sql.DB
 
+var allStocks []Stock
+
 type Stock struct {
+    Symbol string `json:"symbol"`
+    Name string `json:"name"`
+}
+
+type BookmarkedStock struct {
     ID int `json:"id"`
     Symbol string `json:"symbol"`
 }
@@ -34,17 +43,53 @@ func init() {
         return
     }
 
-    fmt.Println("Connected to database")
+    res, err := http.Get("https://api.iextrading.com/1.0/ref-data/symbols")
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    // https://blog.alexellis.io/golang-json-api-client/
+    body, readErr := ioutil.ReadAll(res.Body)
+    if readErr != nil {
+        log.Fatal(readErr)
+    }
+
+    jsonErr := json.Unmarshal(body, &allStocks)
+    if jsonErr != nil {
+        log.Fatal(jsonErr)
+    }
+
+    fmt.Println("Connected to database and fetched all stock symbols")
 }
 
 func main() {
-    http.HandleFunc("/stocks", getStocks)
-    http.HandleFunc("/stocks/add", addStock)
-    http.HandleFunc("/stocks/remove", removeStock)
+    http.HandleFunc("/allStocks", getAllStocks)
+    http.HandleFunc("/bookmarkedStocks", getStocks)
+    http.HandleFunc("/bookmarkedStocks/add", addStock)
+    http.HandleFunc("/bookmarkedStocks/remove", removeStock)
     http.ListenAndServe(":8080", nil)
 }
 
-// post request to get all stocks
+func getAllStocks(w http.ResponseWriter, r *http.Request) {
+    if(r.Method != "GET") {
+        http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+        return
+    }
+
+    // marshall allStocks slice into JSON and send as a response
+    output, err := json.Marshal(allStocks)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(output)
+}
+
+// post request to get all bookmarked stocks
 func getStocks(w http.ResponseWriter, r *http.Request) {
     // db query to get stocks
         // create structs with stock info from db
@@ -56,7 +101,7 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    stocks := []Stock{}
+    stocks := []BookmarkedStock{}
 
     rows, err := db.Query("select * from bookmarked_stocks")
     if err != nil {
@@ -66,7 +111,7 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
     defer rows.Close()
 
     for rows.Next() {
-        stock := Stock{}
+        stock := BookmarkedStock{}
         err = rows.Scan(&stock.ID, &stock.Symbol)
         if err != nil {
             fmt.Println(err)
@@ -100,7 +145,7 @@ func addStock(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    stock := Stock{}
+    stock := BookmarkedStock{}
 
     decoder := json.NewDecoder(r.Body)
     err := decoder.Decode(&stock)

@@ -15,6 +15,8 @@ class Quote extends Component {
       followingStock: false,
       activeItem: 'summary'
     };
+
+    // console.log('props in Quote', this.props);
   }
 
   componentDidMount = async () => {
@@ -23,15 +25,15 @@ class Quote extends Component {
       console.log('followedStocks', followedStocks.data);
 
       followedStocks.data.forEach((stock) => {
-        if(stock.symbol === this.props.match.params.symbol) {
+        if(stock.symbol === this.state.stockSymbol) {
           this.setState({
             followingStock: true
           });
         }
       });
 
-      const iexDataResponse = await axios.get(`https://api.iextrading.com/1.0/stock/${this.props.match.params.symbol}/quote`);
-      const robinhoodDataResponse = await axios.get(`https://api.robinhood.com/quotes/${this.props.match.params.symbol}/`);
+      const iexDataResponse = await axios.get(`https://api.iextrading.com/1.0/stock/${this.props.symbol}/quote`);
+      const robinhoodDataResponse = await axios.get(`https://api.robinhood.com/quotes/${this.props.symbol}/`);
 
       this.setState({
         iexQuoteData: iexDataResponse.data,
@@ -49,7 +51,7 @@ class Quote extends Component {
 
   followStock = async () => {
     try {
-      const followedStock = await axios.post('/bookmarkedStocks/add', {"symbol": this.props.match.params.symbol});
+      const followedStock = await axios.post('/bookmarkedStocks/add', {"symbol": this.state.symbol});
       console.log('followedStock', followedStock);
       if(followedStock.status === 201) {
         this.setState({
@@ -64,7 +66,7 @@ class Quote extends Component {
 
   unfollowStock = async () => {
     try {
-      const deletedStock = await axios.delete('/bookmarkedStocks/remove', {params: {symbol: this.props.match.params.symbol}});
+      const deletedStock = await axios.delete('/bookmarkedStocks/remove', {params: {symbol: this.state.symbol}});
       console.log('deletedStock', deletedStock);
       if(deletedStock.status === 204) {
         this.setState({
@@ -78,10 +80,12 @@ class Quote extends Component {
   }
 
   render() {
+
+    console.log('props before render', this.props);
     return (
       <div>
         <Price 
-          symbol={this.props.match.params.symbol}
+          symbol={this.props.symbol}
           followingStock={this.state.followingStock}
           iexQuoteData={this.state.iexQuoteData}
           robinhoodQuoteData={this.state.robinhoodQuoteData}
@@ -111,7 +115,7 @@ class Quote extends Component {
 
         {this.state.activeItem === 'summary' ? 
           <Summary 
-            symbol={this.props.match.params.symbol} 
+            symbol={this.props.symbol} 
             iexQuoteData={this.state.iexQuoteData}
             robinhoodQuoteData={this.state.robinhoodQuoteData}
           /> 
@@ -120,13 +124,13 @@ class Quote extends Component {
         }
         
         {this.state.activeItem === 'chart' ? 
-          <Chart symbol={this.props.match.params.symbol} /> 
+          <Chart symbol={this.props.symbol} /> 
         : 
           null
         }
 
         {this.state.activeItem === 'messages' ? 
-          <Messages symbol={this.props.match.params.symbol} /> 
+          <Messages symbol={this.props.symbol} /> 
         : 
           null
         }

@@ -21,16 +21,14 @@ class Quote extends Component {
 
   componentDidMount = async () => {
     try {
-      const followedStocks = await axios.post('/bookmarkedStocks');
-      console.log('followedStocks', followedStocks.data);
+      const followedStockResponse = await axios.post('/bookmarkedStock', {"symbol": this.props.symbol});
+      console.log('followedStock', followedStockResponse.data);
 
-      followedStocks.data.forEach((stock) => {
-        if(stock.symbol === this.state.stockSymbol) {
-          this.setState({
-            followingStock: true
-          });
-        }
-      });
+      if(followedStockResponse.data.symbol === this.props.symbol) {
+        this.setState({
+          followingStock: true
+        });
+      }
 
       const iexDataResponse = await axios.get(`https://api.iextrading.com/1.0/stock/${this.props.symbol}/quote`);
       const robinhoodDataResponse = await axios.get(`https://api.robinhood.com/quotes/${this.props.symbol}/`);
@@ -51,7 +49,7 @@ class Quote extends Component {
 
   followStock = async () => {
     try {
-      const followedStock = await axios.post('/bookmarkedStocks/add', {"symbol": this.state.symbol});
+      const followedStock = await axios.post('/bookmarkedStocks/add', {"symbol": this.props.symbol});
       console.log('followedStock', followedStock);
       if(followedStock.status === 201) {
         this.setState({
@@ -66,7 +64,7 @@ class Quote extends Component {
 
   unfollowStock = async () => {
     try {
-      const deletedStock = await axios.delete('/bookmarkedStocks/remove', {params: {symbol: this.state.symbol}});
+      const deletedStock = await axios.delete('/bookmarkedStocks/remove', {params: {symbol: this.props.symbol}});
       console.log('deletedStock', deletedStock);
       if(deletedStock.status === 204) {
         this.setState({

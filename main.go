@@ -24,6 +24,7 @@ type BookmarkedStock struct {
     Symbol string `json:"symbol"`
 }
 
+// separate get request into separate function.
 func init() {
     var err error
 
@@ -66,6 +67,7 @@ func init() {
 func main() {
     http.HandleFunc("/allStocks", getAllStocks)
     http.HandleFunc("/bookmarkedStocks", getStocks)
+    http.HandleFunc("/bookmarkedStock", getStock)
     http.HandleFunc("/bookmarkedStocks/add", addStock)
     http.HandleFunc("/bookmarkedStocks/remove", removeStock)
     http.ListenAndServe(":8080", nil)
@@ -133,6 +135,54 @@ func getStocks(w http.ResponseWriter, r *http.Request) {
     fmt.Println(string(output))
 }
 
+// get a bookmarked stock
+func getStock(w http.ResponseWriter, r *http.Request) {
+    if(r.Method != "POST") {
+        http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+        return
+    }
+
+    body, err := ioutil.ReadAll(r.Body)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    stock := BookmarkedStock{}
+
+    err = json.Unmarshal(body, &stock)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    rows, err := db.Query("select * from bookmarked_stocks where symbol = $1", stock.Symbol)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    defer rows.Close()
+
+    retrievedStock := BookmarkedStock{}
+    for rows.Next() {
+        err = rows.Scan(&retrievedStock.ID, &retrievedStock.Symbol)
+        if err != nil {
+            fmt.Println(err)
+            return
+        }
+    }
+
+    output, err := json.Marshal(retrievedStock)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(output)
+
+    fmt.Println(string(output))
+}
 
 // post request to add a stock
 func addStock(w http.ResponseWriter, r *http.Request) {

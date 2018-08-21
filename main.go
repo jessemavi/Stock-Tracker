@@ -28,7 +28,7 @@ type BookmarkedStock struct {
 func init() {
     var err error
 
-    db, err = sql.Open("postgres", "dbname=stock_tracker_2 sslmode=disable")
+    db, err = sql.Open("postgres", "dbname=stock_tracker sslmode=disable")
     if err != nil {
         panic(err)
     }
